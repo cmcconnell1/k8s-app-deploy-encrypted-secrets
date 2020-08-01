@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -e
+set -v
+shopt -s extglob
+
+# Note copy and rename this file for each additional environment--i.e. stage and prod, etc.
+
+MYAPP_VARS_FILE="./development.vars" 
+source "./${MYAPP_VARS_FILE}"
+
+# this is set in the vars file but we set/override it again here JIC
+export MYAPP_ENV="development"
+
+# clear existing old manifests before we build new ones
+rm -fr ./manifests/${MYAPP_ENV} && mkdir -p ./manifests/${MYAPP_ENV}
+
+# dynamically create our manifest files with vars from templates.
+
+# configmap--these will all be exported variables in the containers in kubernetes
+sed -e "s#__MYAPP_LABELS_RELEASE__#${MYAPP_LABELS_RELEASE}#g" \
+-e "s#__MYAPP_GRAFANA_DASHBOARD__#${MYAPP_GRAFANA_DASHBOARD}#g" \
+-e "s#__ELASTICSEARCH_CLUSTER_NAME__#${ELASTICSEARCH_CLUSTER_NAME}#g" \
+-e "s#__ELASTICSEARCH_TRANSPORT_ADDRESSES__#${ELASTICSEARCH_TRANSPORT_ADDRESSES}#g" \
+-e "s#__ELASTICSEARCH_USER__#${ELASTICSEARCH_USER}#g" \
+-e "s#__ELASTICSEARCH_SCROLL_THRESHOLD__#${ELASTICSEARCH_SCROLL_THRESHOLD}#g" \
+-e "s#__ELASTICSEARCH_SCROLL_SIZE__#${ELASTICSEARCH_SCROLL_SIZE}#g" \
+-e "s#__ELASTICSEARCH_SCROLL_KEEPALIVE__#${ELASTICSEARCH_SCROLL_KEEPALIVE}#g" \
+-e "s#__KAFKA_CLUSTER_NAME__#${KAFKA_CLUSTER_NAME}#g" \
+-e "s#__KAFKA_CLUSTER_BROKER_LIST__#${KAFKA_CLUSTER_BROKER_LIST}#g" \
+-e "s#__DATABASEFOO_SCHEMA__#${DATABASEFOO_SCHEMA}#g" \
+-e "s#__DATABASEFOO_URL__#${DATABASEFOO_URL}#g" \
+-e "s#__DATABASEFOO_USER__#${DATABASEFOO_USER}#g" \
+-e "s#__HTTP_INTERFACE__#${HTTP_INTERFACE}#g" \
+-e "s#__HTTP_PORT__#${HTTP_PORT}#g" \
+-e "s#__NODE_ID__#${NODE_ID}#g" ./templates/20-configmap.yaml.tpl > "./manifests/${MYAPP_ENV}/20-configmap.yaml"
+
+# deployment
+sed -e "s#__PROMETHEUS_IO_PORT__#${PROMETHEUS_IO_PORT}#g" \
+-e "s#__PROMETHEUS_IO_SCRAPE__#${PROMETHEUS_IO_SCRAPE}#g" \
+-e "s#__MYAPP_REPO__#${MYAPP_REPO}#g" \
+-e "s#__BUILD_VERSION__#${BUILD_VERSION}#g" \
+-e "s#__HTTP_PORT__#${HTTP_PORT}#g" \
+-e "s#__MYAPP_PERSISTENT_STORAGE_MOUNTPATH__#${MYAPP_PERSISTENT_STORAGE_MOUNTPATH}#g" \
+-e "s#__MYAPP_PERSISTENT_STORAGE_CLAIMNAME__#${MYAPP_PERSISTENT_STORAGE_CLAIMNAME}#g" ./templates/40-deployment.yaml.tpl > "./manifests/${MYAPP_ENV}/40-deployment.yaml"
+
+# pvc
+sed -e "s#__MYAPP_PERSISTENT_STORAGE_CLAIMNAME__#${MYAPP_PERSISTENT_STORAGE_CLAIMNAME}#g" \
+-e "s#__MYAPP_PERSISTENT_STORAGE_VOLSIZE__#${MYAPP_PERSISTENT_STORAGE_VOLSIZE}#g" ./templates/10-pvc.yaml.tpl > "./manifests/${MYAPP_ENV}/10-pvc.yaml"
+
+# service
+sed -e "s#__HTTP_PORT__#${HTTP_PORT}#g" ./templates/30-service.yaml.tpl > "./manifests/${MYAPP_ENV}/30-service.yaml"
+
+# just copy files that don't require any variable interpolation
+cp ./templates/05-namespace.yaml.tpl ./manifests/${MYAPP_ENV}/05-namespace.yaml 
+cp ./templates/60-cron.yaml.tpl ./manifests/${MYAPP_ENV}/60-cron.yaml 

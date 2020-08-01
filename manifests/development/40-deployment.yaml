@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "myapp"
+  namespace: "myapp"
+  labels:
+    app: "myapp"
+spec:
+  selector:
+    matchLabels:
+      app: "myapp"
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: "myapp"
+      annotations:
+        prometheus.io/port: "10254"
+        prometheus.io/scrape: "true"
+    spec:
+      containers:
+      - name: "myapp"
+        image: "01234567890.dkr.ecr.us-west-2.amazonaws.com/myapp/myapp:0.9.54"
+        envFrom:
+        - configMapRef:
+            name: "myapp-config"
+        - secretRef:
+            name: "myapp-secrets"
+        ports:
+        - containerPort: 9001
+        workingDir: "/opt/myapp"
+        volumeMounts:
+        - name: "myapp-persistent-storage"
+          mountPath: "/opt/myapp/streamData"
+      volumes:
+      - name: "myapp-persistent-storage"
+        persistentVolumeClaim:
+          claimName: "myapp-pv-claim"

@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "myapp-config"
+  namespace: "myapp"
+  labels:  
+    app: "myapp"
+    release: "myapp"
+    grafana_dashboard: "1"
+data:
+  # elasticsearch
+  ELASTICSEARCH_CLUSTER_NAME: "01234567890:dev"
+  ELASTICSEARCH_TRANSPORT_ADDRESSES: "vpc-dev-wycmngvk4vp12314asdsdsdfs456dd.us-west-2.es.amazonaws.com:443"
+  ELASTICSEARCH_USER: "myapp"
+  ELASTICSEARCH_SCROLL_THRESHOLD: "10000"
+  ELASTICSEARCH_SCROLL_SIZE: "10000"
+  ELASTICSEARCH_SCROLL_KEEPALIVE: "120000"
+  # kafka
+  KAFKA_CLUSTER_NAME: "kafkakitty-dev"
+  KAFKA_CLUSTER_BROKER_LIST: "b-1.kafka-dev.asdfadf23.c2.kafka.us-west-2.amazonaws.com:9092"
+  # DATABASEFOO
+  DATABASEFOO_SCHEMA: "metrics"
+  DATABASEFOO_URL: "jdbc:postgresql://mydatabase.dev.foo.com:5444/metrics"
+  DATABASEFOO_USER: "foouser"
+  # misc
+  HTTP_INTERFACE: "0.0.0.0"
+  HTTP_PORT: "9001"
+  NODE_ID: "1"
+  # etc
+  # ...
