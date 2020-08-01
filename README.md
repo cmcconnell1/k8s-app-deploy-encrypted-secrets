@@ -35,6 +35,14 @@ For development branch/environment, automatically builds the Kubernetes manifest
         - secretRef:
             name: "myapp-secrets"
   ```
+##### NOTE: ensure your .gitattributes file is committed before committing sensitive files.
+- Ensure that your file(s) will be encrypted
+- ref: https://www.agwa.name/projects/git-crypt
+```console
+git-crypts status -e
+```
+Note the secrets file was committed without being encrypted on purpose so that you could see the contents of the file--see the git-crypt docs.
+Always commit all ./.gitattributes files first, then sensitive files/data.
 
 ##### Deploy Project
 - Deploys myapp to requisite environments controlled/gated by specific branch (and requisite Jenkinsfile code/logic).
